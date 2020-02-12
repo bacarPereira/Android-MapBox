@@ -5,13 +5,17 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.Button
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.Marker
+import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapView
@@ -20,15 +24,19 @@ import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
 
-class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListener {
+class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListener,MapboxMap.OnMapClickListener {
 
     private lateinit var mapView : MapView
     private lateinit var map:MapboxMap
     private lateinit var permissionManager: PermissionsManager
     private lateinit var originLocation: Location //AQUI VAI ESTAR A LOCALIZACAO ATUAL
+    private lateinit var startButton: Button
+    private lateinit var originPosition: Point
+    private lateinit var destinationPosition:Point
 
     private var locationEngine: LocationEngine? = null //VOMPONENTE QUE VAI DAR A LOCALIZACAO DO USUARIO
     private var locationLayerPlugin: LocationLayerPlugin? = null //FORNECE A LOCALIZACAO DO TELEFONE, ESPECIE DE UI LAYER, FORNECE A UI MOSTRANDO O ICONE DO USUARIO
+    private var destinationMarker:Marker?  = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,9 +46,15 @@ class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListe
         Mapbox.getInstance(applicationContext,getString(R.string.access_token))
         mapView = findViewById(R.id.map_view)
         mapView.onCreate(savedInstanceState)
+        startButton = findViewById(R.id.start_button)
         mapView.getMapAsync{mapboxMap->
             map = mapboxMap
+            map.addOnMapClickListener(this)
             enableLocation()
+        }
+
+        startButton.setOnClickListener {
+            //Navegacao UI
         }
     }
 
@@ -83,6 +97,25 @@ class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListe
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude),13.0))
         Log.i("LOGLOG","${location.latitude} ___setCameraPosition")
         Log.i("LOGLOG","${location.longitude} ___setCameraPosition")
+    }
+
+    override fun onMapClick(point: LatLng) {
+
+        destinationMarker?.let {
+            map.removeMarker(it)
+        }
+
+        destinationMarker = map.addMarker(MarkerOptions().position(point))
+        destinationPosition = Point.fromLngLat(point.longitude,point.latitude)
+        originPosition = Point.fromLngLat(originLocation.longitude,originLocation.latitude)
+        Log.i("LOGLOG","${point.longitude} POINT ___onMapClick")
+        Log.i("LOGLOG","${point.latitude} POINT ___onMapClick")
+
+        Log.i("LOGLOG","${originLocation.longitude} ORIGINLOCATION ___onMapClick")
+        Log.i("LOGLOG","${originLocation.latitude} ORIGINLOCATION ___onMapClick")
+
+        startButton.isEnabled = true
+        startButton.setBackgroundResource(R.color.mapbox_blue)
     }
 
     //É CHAMADO QUANDO O USUARIO NEGA A PERMISSAO PELA PRIMEIRA VEZ

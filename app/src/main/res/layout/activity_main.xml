@@ -8,6 +8,21 @@
     tools:context=".MainActivity">
 
 
+    <Button
+        android:id="@+id/start_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:background="@color/mapboxGrayLight"
+        android:enabled="false"
+        android:text="Começar Navegação"
+        android:textColor="@color/mapboxWhite"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <com.mapbox.mapboxsdk.maps.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
@@ -17,7 +32,9 @@
         mapbox:mapbox_cameraTargetLat="37.7749"
         mapbox:mapbox_cameraTargetLng="-122.4194"
         mapbox:mapbox_cameraZoom="12"
-        mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10" />
+        mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10" >
+
+    </com.mapbox.mapboxsdk.maps.MapView>
 
     <!--mapbox:mapbox_styleUrl="mapbox://styles/mapbox/traffic-day-v2" />-->
 
