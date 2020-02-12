@@ -12,6 +12,7 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.Marker
@@ -23,6 +24,11 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
+import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
+import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListener,MapboxMap.OnMapClickListener {
 
@@ -37,6 +43,7 @@ class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListe
     private var locationEngine: LocationEngine? = null //VOMPONENTE QUE VAI DAR A LOCALIZACAO DO USUARIO
     private var locationLayerPlugin: LocationLayerPlugin? = null //FORNECE A LOCALIZACAO DO TELEFONE, ESPECIE DE UI LAYER, FORNECE A UI MOSTRANDO O ICONE DO USUARIO
     private var destinationMarker:Marker?  = null
+    private var navigationMapRoute:NavigationMapRoute? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,6 +121,8 @@ class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListe
         Log.i("LOGLOG","${originLocation.longitude} ORIGINLOCATION ___onMapClick")
         Log.i("LOGLOG","${originLocation.latitude} ORIGINLOCATION ___onMapClick")
 
+        getRoute(originPosition,destinationPosition)
+
         startButton.isEnabled = true
         startButton.setBackgroundResource(R.color.mapbox_blue)
     }
@@ -145,6 +154,36 @@ class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListe
         Log.i("LOGLOG","${location?.latitude} ___onLocationChanged")
         Log.i("LOGLOG","${location?.longitude} ___onLocationChanged")
 
+    }
+
+    private fun getRoute(origin:Point,destination:Point){
+        NavigationRoute.builder()
+            .accessToken(Mapbox.getAccessToken())
+            .origin(origin)
+            .destination(destination)
+            .build()
+            .getRoute(object : Callback<DirectionsResponse>{
+                override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
+
+                    val routeResponse = response ?: return
+                    val body = routeResponse.body() ?: return
+                    if (body.routes().count() == 0){
+                        Log.i("LOGLOG","Sem rotas encontradas ___onResponse")
+                        return
+                    }
+
+                    if (navigationMapRoute != null){
+                        navigationMapRoute?.removeRoute()
+                    }else{
+                        navigationMapRoute = NavigationMapRoute(null,mapView,map)
+                        navigationMapRoute?.addRoute(body.routes().first())
+                    }
+                }
+
+                override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                    Log.i("LOGLOG","${t.message} ___onFailure")
+                }
+            })
     }
 
     @SuppressWarnings("MissingPermission")
