@@ -24,6 +24,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
 import retrofit2.Call
@@ -61,8 +63,16 @@ class MainActivity : AppCompatActivity(),PermissionsListener,LocationEngineListe
         }
 
         startButton.setOnClickListener {
-            //Navegacao UI
+            val options = NavigationLauncherOptions.builder()
+                .origin(originPosition)
+                .destination(destinationPosition)
+                .shouldSimulateRoute(true)
+                .build()
+
+            NavigationLauncher.startNavigation(this,options)
         }
+
+
     }
 
     private fun enableLocation(){
